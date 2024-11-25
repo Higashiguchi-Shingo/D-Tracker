@@ -2,11 +2,6 @@ import numpy as np
 from sklearn import preprocessing
 from scipy.stats import norm
 
-"MDL cost of diffusion model"
-
-# modelDBを入力として、全モデルのtotal costを計算する関数の実装
-# ablationの時も同様の関数でコスト計算できるように修正
-# 
 
 def trend_cost(A, D, X0, W_key, W_loc, float_cost=32, tol=1e-3):
     cost = 0

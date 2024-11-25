@@ -20,10 +20,6 @@ import tucker
 from rank import RankUpdate
 from MDL import costDB, costE, costM
 
-# ToDo
-# 季節性テンソルをfoldする時のアルゴリズムの実装
-# initの時に拡散を考えないようにする処理の実装
-
 
 # input:
 #   Xc          : input tensor
@@ -139,8 +135,6 @@ class DTrackerModel:
         
         print("# of outliers:", np.count_nonzero(self.Xo))
         print("# of iterrations:", iterration)
-        
-        
 
 
     # --------------------------------- #
@@ -323,24 +317,6 @@ class DTrackerModel:
     # ------------------------------------------- #
     #  ALS update methods for Seasonal tensor 
     # ------------------------------------------- #
-    def update_Stime(self, Xs_hat):
-        S_time = multi_mode_dot(Xs_hat, [self.Stime, self.Skey, self.Sloc], modes=[0,1,2], skip=0, transpose=True)
-        # 左特異ベクトルを新しいfactorにする
-        eigenvecs, _, _ = svd_interface(self.unfold(S_time, 0), n_eigenvecs=self.ds)
-        self.Stime = eigenvecs
-
-    def update_Skey(self, Xs_hat, is_nn=False):
-        S_key = multi_mode_dot(Xs_hat, [self.Stime, self.Skey, self.Sloc], modes=[0,1,2], skip=1, transpose=True)
-        # 左特異ベクトルを新しいfactorにする
-        eigenvecs, _, _ = svd_interface(self.unfold(S_key, 1), n_eigenvecs=self.ds)
-        self.Skey = eigenvecs
-        
-    def update_Sloc(self, Xs_hat, is_nn=False):
-        S_loc = multi_mode_dot(Xs_hat, [self.Stime, self.Skey, self.Sloc], modes=[0,1,2], skip=2, transpose=True)
-        # 左特異ベクトルを新しいfactorにする
-        eigenvecs, _, _ = svd_interface(self.unfold(S_loc, 2), n_eigenvecs=self.ds)
-        self.Sloc = eigenvecs
-
     def update_seasonal_factors(self, Xs_hat):
         old_cp = [None, [self.Stime, self.Skey, self.Sloc]]
         new_cp = parafac(Xs_hat, rank=self.ds, init=old_cp, n_iter_max=1)
@@ -508,7 +484,7 @@ class DTrackerModel:
 
 class DTracker:
     def __init__(self, X, lc, lf, init, max_dk, max_dl, max_ds, outdir, \
-                seasonal_period, stl_period, rankupdate, out_lf, \
+                seasonal_period, stl_period, rankupdate, \
                 ablation_seasonal, ablation_diffusion, outlier=0):
         self.X = X                      # data stream
         self.lc, self.lf = lc, lf       # length of input windows and forecasting window
@@ -526,7 +502,6 @@ class DTracker:
                                 max_dk, max_dl, max_ds  # maximum dimention
         self.seasonal_period = seasonal_period          # seasonal period: n_p
         self.stl_period = stl_period
-        self.out_lf = out_lf
         self.outdir = outdir
 
         self.init = bool(init)

@@ -135,14 +135,6 @@ def get_dim_list(path, mode="geo"):
     df = pd.read_csv(path)
     return sorted(list(set(df[mode])))
 
-#----------------------------------------------------#
-# 最大値1, 最小値0に正規化する関数
-# min_max_scale_tensor()
-# 入力:
-#   data : 正規化前テンソル(time, keyword, location)
-# 出力:
-#   正規化したテンソル (time, keyword, location)
-#----------------------------------------------------#
 def min_max_scale_np(array):
     min = array.min()
     max = array.max()

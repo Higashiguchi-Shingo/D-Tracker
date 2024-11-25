@@ -23,13 +23,6 @@ def nonnegative_tucker_decomp(tensor, rank):
     if rank[0] > rank[1]*rank[2]: rank[0] = rank[1]*rank[2] - 1
     
     tensor_mu, error_mu = non_negative_tucker_hals(tensor, rank=rank, tol=1e-12, n_iter_max=100, return_errors=True)
-    """print("-----Non-negative Tucker Decomposition-----")
-    print("Original Tensor: " + str(tensor.shape))
-    print("--------------->  Core Tensor: " + str(tensor_mu[0].shape))
-    print(" (decompose)      Factor 1: " + str(tensor_mu[1][0].shape))
-    print("                  Factor 2: " + str(tensor_mu[1][1].shape))
-    print("                  Factor 3: " + str(tensor_mu[1][2].shape))
-    print('RMSE tensorly nntucker: ' + str(RMSE(tensor, tl.tucker_to_tensor(tensor_mu))))"""
     return tensor_mu[0], tensor_mu[1][0], tensor_mu[1][1], tensor_mu[1][2], RMSE(tensor, tl.tucker_to_tensor(tensor_mu))
 
 
