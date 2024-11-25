@@ -37,7 +37,7 @@ lf = [int(i) for i in args.lf.split("/")]
 
 # I/O setup
 root = "../result"   # root
-dir = os.path.join(root, args.dataset, "lc=" + str(args.lc), "stl=" + str(args.stl_period), "rankupdate=" + str(args.rankupdate), \
+result_dir = os.path.join(root, args.dataset, "lc=" + str(args.lc), "stl=" + str(args.stl_period), "rankupdate=" + str(args.rankupdate), \
                         "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier), "forecast")
 
 outdir = os.path.join(root, args.dataset, "lc=" + str(args.lc), "stl=" + str(args.stl_period), "rankupdate=" + str(args.rankupdate), \
@@ -45,6 +45,7 @@ outdir = os.path.join(root, args.dataset, "lc=" + str(args.lc), "stl=" + str(arg
 
 dt = 4
 
+print("dataset:", args.dataset)
 
 # accuracy
 for l in lf:
@@ -52,7 +53,7 @@ for l in lf:
     X_hat = np.array([])
 
     for t in range(args.start_timestep, args.end_timestep, dt):
-        path = dir + "/t=" + str(t)
+        path = result_dir + "/t=" + str(t)
         Xf = np.load(path + "/Xf.npy")[l-dt:l]
         Xf_hat = np.load(path + "/Xf_hat.npy")[l-dt:l]
 
@@ -63,16 +64,5 @@ for l in lf:
     print("MAE:", MAE(X, X_hat))
     print("RMSE:", RMSE(X, X_hat))
 
-    np.save(outdir + "/Xf.npy", X)
-    np.save(outdir + "/Xf_hat.npy", X_hat)
-
-    plt.figure(figsize=(15,3))
-    plt.plot(X[:,:,-3], color="lightgrey", linewidth=3)
-    plt.plot(X_hat[:,:,-3], linewidth=3)
-    plt.savefig(outdir + "/forecast" + str(l) + ".jpg")
-
-    with open(outdir + "/accurcy" + str(l) + ".txt", 'w', encoding='utf-8') as file:
-        file.write("MAE: " + str(MAE(X, X_hat)))
-        file.write("\n")
-        file.write("RMSE: " + str(RMSE(X, X_hat)))
-
+    np.save(outdir + "/Xf" + str(l) + ".npy", X)
+    np.save(outdir + "/Xf_hat" + str(l) + ".npy", X_hat)
