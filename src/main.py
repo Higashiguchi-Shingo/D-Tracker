@@ -32,6 +32,7 @@ parser.add_argument("--rankupdate", type=int, default=0)
 parser.add_argument("--ablation_seasonal", type=int, default=0)
 parser.add_argument("--ablation_diffusion", type=int, default=0)
 parser.add_argument("--outlier", type=int, default=0)
+parser.add_argument("--stl", type=int, default=1)
 
 args = parser.parse_args()
 
@@ -51,7 +52,8 @@ else:
 # I/O setup
 outdir = "../result"   # root
 outdir = os.path.join(outdir, args.dataset, "lc=" + str(args.lc), "stl=" + str(args.stl_period), "rankupdate=" + str(args.rankupdate), \
-                        "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier))
+                        "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier), \
+                        "stl=" + str(args.stl))
 
 if os.path.exists(outdir): shutil.rmtree(outdir)
 os.makedirs(outdir, exist_ok=True)
@@ -63,7 +65,7 @@ dtracker = dtracker.DTracker(X=X, lc=args.lc, lf=args.lf, init=args.init, \
                             seasonal_period=args.seasonal_period, stl_period=args.stl_period, \
                             outdir=outdir, rankupdate=args.rankupdate, \
                             ablation_seasonal=args.ablation_seasonal, ablation_diffusion=args.ablation_diffusion, \
-                            outlier=args.outlier)
+                            outlier=args.outlier, stl=args.stl)
 
 dtracker.initialization()
 dtracker.run()

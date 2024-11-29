@@ -25,7 +25,7 @@ from MDL import costDB, costE, costM
 #   Xc          : input tensor
 #   dk, dl, ds  : number of latent dynamics
 class DTrackerModel:
-    def __init__(self, Xc, dk, dl, ds, seasonal_period, stl_period, ablation_seasonal, ablation_diffusion, outlier=False):
+    def __init__(self, Xc, dk, dl, ds, seasonal_period, stl_period, ablation_seasonal, ablation_diffusion, outlier=False, stl=True):
         self.epsilon = 1e-4
         # input tensor
         self.Xc = Xc
@@ -46,16 +46,18 @@ class DTrackerModel:
         self.ablation_diffusion = ablation_diffusion
         self.outlier = outlier
         self.Xo = np.zeros(Xc.shape)
+        self.stl = stl
 
     # ----------------------- #
     #    Initialization
     # ----------------------- #
-    def initialization(self, init_D=True):
+    def initialization(self):
         ### Seaasonal-Trend Decomposition ###
-        Xd, Xs, _ = utils.ST_decomp(self.Xc, self.stl_period)
-        """if self.ablation_seasonal:
-            Xd = self.Xc"""
-        if self.ds==0:
+        if self.stl:
+            Xd, Xs, _ = utils.ST_decomp(self.Xc, self.stl_period)
+            if self.ds==0:
+                Xd = self.Xc
+        else:
             Xd = self.Xc
 
         ### Initialization of "theta_d" = {A, D, X, Wkey, Wloc} ###
@@ -67,11 +69,12 @@ class DTrackerModel:
         self.gen_Wcore = self.gen_latent(self.lc)
         self.Xd_hat = self.gen_trend(self.lc)
 
+        if not self.stl:
+            Xs = self.Xc - self.Xd_hat
+
         ### Initialization of "theta_s" = {Stime, skey, Sloc} ###
         if self.ds>=1:
             self.Stime, self.Skey, self.Sloc, self.Xs_hat = tucker.parafac_decomp(Xs, rank=self.ds)
-            #avg = (self.Stime[:52] + self.Stime[52:]) / 2
-            #self.Stime = np.concatenate([avg, avg], axis=0)
         else:
             self.Stime, self.Skey, self.Sloc, self.Xs_hat = tucker.parafac_decomp(Xs, rank=1)
             self.Stime = np.zeros(self.Stime.shape)
@@ -97,9 +100,9 @@ class DTrackerModel:
     # ---------------------------- #
     #   Model Estimation
     # ---------------------------- #
-    def ModelEstimation(self, init_D=True):
+    def ModelEstimation(self):
         # initialization
-        self.initialization(init_D=init_D)
+        self.initialization()
 
         pre_error = 1
         iterration = 1
@@ -485,7 +488,7 @@ class DTrackerModel:
 class DTracker:
     def __init__(self, X, lc, lf, init, max_dk, max_dl, max_ds, outdir, \
                 seasonal_period, stl_period, rankupdate, \
-                ablation_seasonal, ablation_diffusion, outlier=0):
+                ablation_seasonal, ablation_diffusion, outlier=0, stl=1, init_dk=3, init_dl=2, init_ds=1):
         self.X = X                      # data stream
         self.lc, self.lf = lc, lf       # length of input windows and forecasting window
         self.X_hat = np.zeros(X.shape)  # fitting result
@@ -509,6 +512,10 @@ class DTracker:
         self.ablation_seasonal = bool(ablation_seasonal)
         self.ablation_diffusion = bool(ablation_diffusion)
         self.outlier = bool(outlier)
+        self.stl = bool(stl)
+
+        if not self.init:
+            self.init_dk, self.init_dl, self.init_ds = init_dk, init_dl, init_ds
 
     
     #---------------------#
@@ -520,7 +527,7 @@ class DTracker:
             self.dk, self.dl, self.ds = self.grid_search(outlog=outlog)
         else:
             print("Initialization")
-            self.dk, self.dl, self.ds = 2, 2, 0
+            self.dk, self.dl, self.ds = self.init_dk, self.init_dl, self.init_ds
         
         print("Best dk:", self.dk)
         print("Best dl:", self.dl)
@@ -540,7 +547,7 @@ class DTracker:
                     if outlog: print("rank:", dk, dl, ds)
                     model = DTrackerModel(Xc, dk=dk, dl=dl, ds=ds, seasonal_period=self.seasonal_period, stl_period=self.stl_period, \
                                         ablation_diffusion=self.ablation_diffusion, ablation_seasonal=self.ablation_seasonal, \
-                                        outlier=self.outlier)
+                                        outlier=self.outlier, stl=self.stl)
                     model.ModelEstimation()
                     Xc_hat = model.gen_forecast(self.lc)
 
@@ -578,7 +585,7 @@ class DTracker:
 
         model = DTrackerModel(Xc, dk=self.dk, dl=self.dl, ds=self.ds, seasonal_period=self.seasonal_period, stl_period=self.stl_period, \
                             ablation_seasonal=self.ablation_seasonal, ablation_diffusion=self.ablation_diffusion, \
-                            outlier=self.outlier)
+                            outlier=self.outlier, stl=self.stl)
         model.ModelEstimation()
         model.save_params(self.outdir, ts)
 
@@ -603,7 +610,7 @@ class DTracker:
 
             ### calculate cost when using two models ###
             new_model = DTrackerModel(Xc[-self.lc:], dk=self.dk, dl=self.dl, ds=self.ds, seasonal_period=self.seasonal_period, stl_period=self.stl_period, \
-                                        ablation_seasonal=self.ablation_seasonal, ablation_diffusion=self.ablation_diffusion, outlier=self.outlier)
+                                        ablation_seasonal=self.ablation_seasonal, ablation_diffusion=self.ablation_diffusion, outlier=self.outlier, stl=self.stl)
             new_model.ModelEstimation()
             Xc_hat, Xf_hat = np.split(new_model.gen_forecast(self.lc+self.lf), [self.lc])  # forecast future values
 

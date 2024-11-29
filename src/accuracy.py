@@ -30,6 +30,7 @@ parser.add_argument("--rankupdate", type=int, default=0)
 parser.add_argument("--ablation_seasonal", type=int, default=0)
 parser.add_argument("--ablation_diffusion", type=int, default=0)
 parser.add_argument("--outlier", type=int, default=0)
+parser.add_argument("--stl", type=int, default=0)
 
 args = parser.parse_args()
 
@@ -38,10 +39,10 @@ lf = [int(i) for i in args.lf.split("/")]
 # I/O setup
 root = "../result"   # root
 result_dir = os.path.join(root, args.dataset, "lc=" + str(args.lc), "stl=" + str(args.stl_period), "rankupdate=" + str(args.rankupdate), \
-                        "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier), "forecast")
+                        "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier), "stl=" + str(args.stl), "forecast")
 
 outdir = os.path.join(root, args.dataset, "lc=" + str(args.lc), "stl=" + str(args.stl_period), "rankupdate=" + str(args.rankupdate), \
-                        "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier), "log")
+                        "ablation_s=" + str(args.ablation_seasonal), "ablation_d=" + str(args.ablation_diffusion), "outlier=" + str(args.outlier), "stl=" + str(args.stl), "log")
 
 dt = 4
 

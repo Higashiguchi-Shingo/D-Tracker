@@ -13,6 +13,7 @@ rankupdate=1
 ablation_s=0
 ablation_d=0
 outlier=1
+stl=0
 
 python3 main.py --dataset $dataset \
                 --lc $lc \
@@ -21,7 +22,8 @@ python3 main.py --dataset $dataset \
                 --rankupdate $rankupdate \
                 --ablation_seasonal $ablation_s \
                 --ablation_diffusion $ablation_d \
-                --outlier $outlier
+                --outlier $outlier \
+                --stl $stl
 
 
 
@@ -36,4 +38,5 @@ python3 accuracy.py --dataset $dataset \
                     --start_timestep $start_timestep \
                     --end_timestep $end_timestep \
                     --rankupdate $rankupdate \
-                    --outlier $outlier
+                    --outlier $outlier \
+                    --stl $stl
