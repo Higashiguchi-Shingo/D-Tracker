@@ -15,7 +15,7 @@ pip install -r requirements.txt
 
 ## Dataset
 
-All datasets used in the paper are located in the `dataset/` directory.
+All datasets used in the paper are located in the `data/` directory.
 
 ## Running Experiments
 
